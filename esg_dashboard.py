@@ -116,8 +116,7 @@ PLOT_LAYOUT = dict(
 
 
 #####fix years format
-
-     def line_chart(traces, title="", height=260):
+def line_chart(traces, title="", height=260):
     fig = go.Figure()
     
     for t in traces:
@@ -129,7 +128,6 @@ PLOT_LAYOUT = dict(
         height=height,
     )
 
-    # ✅ SAME indentation level as update_layout
     fig.update_xaxes(
         tickmode='array',
         tickvals=YEARS,
@@ -138,7 +136,6 @@ PLOT_LAYOUT = dict(
     )
 
     return fig
-    
 ####
 
 
