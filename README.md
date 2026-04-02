@@ -1,4 +1,4 @@
-This document provides a structured solution to the ESG Dashboard design activity. 
+This document presents a structured solution for the ESG Dashboard design activity in Lab 3 of the SAM 503 course at the Illinois Institute of Technology.
 For each company, you will find: 
 (1) a full annotated dataset with data quality flags, 
 (2) recommended dashboard KPIs with prioritisation rationale, 
