@@ -127,7 +127,21 @@ def bar_chart(x, y, color, title="", height=220, text=None):
         textposition="outside", textfont_size=11,
     ))
     fig.update_layout(**PLOT_LAYOUT, title=dict(text=title, font_size=12, x=0), height=height)
+
+#####
+    fix years format
+
+     fig.update_xaxes(
+        tickmode='array',
+        tickvals=YEARS,
+        ticktext=[str(y) for y in YEARS],
+        type='category'
+    )
+
     return fig
+    
+####
+
 
 def progress_bar_html(pct, color, label_l, label_r):
     return f"""
