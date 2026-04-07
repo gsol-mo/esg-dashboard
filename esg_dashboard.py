@@ -855,250 +855,498 @@ with c9:
 #  VERDEMART
 # ══════════════════════════════════════════════════════════════════════════════
 else:
+    ## Select the Verdemart dataset when the company is not NordPetro
     df = data["verdemart"]
 
-    r_s3tot  = get_row(df, "Total Scope 3")
-    r_s3c1   = get_row(df, "Cat.1 .purchased")
-    r_s1     = get_row(df, "Scope 1 .refrigerants")
-    r_s2mkt  = get_row(df, "Scope 2 . market")
-    r_pricov = get_row(df, "Supplier coverage")
-    r_sbti   = get_row(df, "SBTi")
-    r_enrol  = get_row(df, "enrolled")
-    r_hfc_a  = get_row(df, "HFC refrigerant leakage .absolute")
-    r_hfc_r  = get_row(df, "HFC leakage rate")
-    r_natref = get_row(df, "natural refrigerants")
-    r_plast  = get_row(df, "plastic packaging .absolute")
+    ## Pull relevant Scope 1, 2, and 3 disclosure rows using keyword matching
+    r_s3tot   = get_row(df, "Total Scope 3")
+    r_s3c1    = get_row(df, "Cat.1 .purchased")
+    r_s1      = get_row(df, "Scope 1 .refrigerants")
+    r_s2mkt   = get_row(df, "Scope 2 . market")
+    r_pricov  = get_row(df, "Supplier coverage")
+    r_sbti    = get_row(df, "SBTi")
+    r_enrol   = get_row(df, "enrolled")
+    r_hfc_a   = get_row(df, "HFC refrigerant leakage .absolute")
+    r_hfc_r   = get_row(df, "HFC leakage rate")
+    r_natref  = get_row(df, "natural refrigerants")
+    r_plast   = get_row(df, "plastic packaging .absolute")
     r_recycle = get_row(df, "recyclable share")
-    r_sku    = get_row(df, "Single-use plastic SKUs")
-    r_foodw  = get_row(df, "Food waste intensity")
-    r_re     = get_row(df, "Renewable electricity")
-    r_energy = get_row(df, "Total energy consumption")
+    r_sku     = get_row(df, "Single-use plastic SKUs")
+    r_foodw   = get_row(df, "Food waste intensity")
+    r_re      = get_row(df, "Renewable electricity")
+    r_energy  = get_row(df, "Total energy consumption")
 
+    ## Build time series for total Scope 3 emissions and Category 1 emissions
     s3_vals   = series(r_s3tot)
     s3c1_vals = series(r_s3c1)
+
+    ## Define Verdemart’s stated Scope 3 reduction target
     s3_target = 14.6
-    s3_2019   = s3_vals[0]
-    s3_2023   = s3_vals[-1]
 
+    ## Extract baseline (2019) and most recent (2023) Scope 3 values
+    s3_2019 = s3_vals[0]
+    s3_2023 = s3_vals[-1]
+
+    ## Calculate the historical annual reduction pace (2019–2023)
     pace_actual = (s3_2019 - s3_2023) / 4
-    proj_2035   = round(s3_2023 - pace_actual * 12, 1)
-    gap_pct     = round((proj_2035 - s3_target) / s3_target * 100, 1)
 
+    ## Project Scope 3 emissions to 2035 assuming the same linear pace continues
+    proj_2035 = round(s3_2023 - pace_actual * 12, 1)
+
+    ## Calculate the percentage gap between projected 2035 emissions
+    ## and the stated Scope 3 target
+    gap_pct = round((proj_2035 - s3_target) / s3_target * 100, 1)
+
+    ## Normalize percentage-based indicators
+    ## Convert fractional values (<1) into percentages
     pricov_vals = [v * 100 if v and v < 1 else v for v in series(r_pricov)]
     sbti_vals   = [v * 100 if v and v < 1 else v for v in series(r_sbti)]
     enrol_vals  = [v * 100 if v and v < 1 else v for v in series(r_enrol)]
     hfc_vals    = [v * 100 if v and v < 1 else v for v in series(r_hfc_r)]
-    plast_vals  = series(r_plast)
-    foodw_vals  = series(r_foodw)
     re_vals     = [v * 100 if v and v < 1 else v for v in series(r_re)]
-    sbti_gap    = enrol_vals[-1] - sbti_vals[-1]
+
+    ## Extract absolute-value series (already expressed in natural units)
+    plast_vals = series(r_plast)
+    foodw_vals = series(r_foodw)
+
+    ## Calculate the gap between supplier enrollment
+    ## and validated SBTi participation
+    sbti_gap = enrol_vals[-1] - sbti_vals[-1]
 
     # ── Header ─────────────────────────────────────────────────────────────────
-    st.markdown(f"""
+## Render a custom header card for the VerdeMart ESG supply chain dashboard
+## Uses raw HTML and inline CSS for precise layout and styling
+st.markdown(f"""
+    ## Outer container card with white background, subtle border,
+    ## rounded corners, padding, and bottom spacing
     <div style='background:#fff;border:1px solid #e5e7eb;border-radius:12px;
                 padding:14px 18px;margin-bottom:16px;'>
+
+      ## Main dashboard title with large, bold text
       <div style='font-size:20px;font-weight:700;color:#111;'>
-        🛒 VerdeMart Group plc — ESG Supply Chain Dashboard</div>
+        🛒 VerdeMart Group plc — ESG Supply Chain Dashboard
+      </div>
+
+      ## Subtitle row providing company context and data coverage
+      ## Includes sector, scale, geography, workforce size, and years covered
       <div style='font-size:12px;color:#6b7280;margin-top:4px;'>
         UK grocery retailer &nbsp;·&nbsp; 2,400 stores &nbsp;·&nbsp;
         18 markets &nbsp;·&nbsp; 310,000 employees &nbsp;·&nbsp; Data: 2019–2023
       </div>
+
+      ## Badge row highlighting audience, core analytical question,
+      ## and a key methodological caveat
       <div style='margin-top:8px;'>
+        ## Intended audience for this dashboard view
         {badge("Audience: Head of Sustainability, FMCG Supplier","green")}
+
+        ## Primary strategic question the analysis seeks to answer
         {badge("Primary Q: What Scope 3 reduction will VerdeMart demand by 2027?","green")}
+
+        ## Warning badge flagging a limitation in Scope 3 methodology
         {badge("⚠ Cat.1 methodology frozen since 2020","amber")}
       </div>
-    </div>""", unsafe_allow_html=True)
+
+    </div>
+""", unsafe_allow_html=True)
 
     # ── Row 1: Data validity + commitment gap ──────────────────────────────────
-    col1, col2 = st.columns(2)
+## Create a two-column layout for data quality vs supplier signal analysis
+col1, col2 = st.columns(2)
 
-    with col1:
-        st.markdown('<div class="section-header">DATA VALIDITY</div>',
-                    unsafe_allow_html=True)
-        pricov_now = pricov_vals[-1] if pricov_vals[-1] else 0
-        st.markdown(f"""
+
+with col1:
+    ## Section header introducing Scope 3 data reliability
+    st.markdown(
+        '<div class="section-header">DATA VALIDITY</div>',
+        unsafe_allow_html=True
+    )
+
+    ## Get most recent primary data coverage value (fallback to 0 if missing)
+    pricov_now = pricov_vals[-1] if pricov_vals[-1] else 0
+
+    ## Summary card assessing credibility of reported Scope 3 reductions
+    st.markdown(f"""
+        ## Risk-focused metric card
         <div class='metric-card red'>
+          
+          ## Framing question about trustworthiness of Scope 3 data
           <div class='metric-label'>Can we trust the Scope 3 numbers?</div>
+          
+          ## Explanation of continued reliance on spend-based estimation
           <div style='font-size:13px;color:#4b5563;margin-bottom:8px;'>
             <strong>{100-pricov_now:.0f}%</strong> of Scope 3 Cat.1 (71% of total S3)
             is still spend-based estimation. Methodology frozen since <strong>2020</strong>.
           </div>
-          {progress_bar_html(pricov_now, "#1D9E75", f"Primary data: {pricov_now:.0f}%",
-                             f"Estimated: {100-pricov_now:.0f}%")}
-          {badge("Reported Scope 3 reductions may be a modelling artefact, not real decarbonisation","red")}
-        </div>""", unsafe_allow_html=True)
+          
+          ## Progress bar showing share of primary vs estimated data
+          {progress_bar_html(
+              pricov_now,
+              "#1D9E75",
+              f"Primary data: {pricov_now:.0f}%",
+              f"Estimated: {100-pricov_now:.0f}%"
+          )}
+          
+          ## Warning badge questioning validity of reported reductions
+          {badge(
+              "Reported Scope 3 reductions may be a modelling artefact, not real decarbonisation",
+              "red"
+          )}
+        </div>
+    """, unsafe_allow_html=True)
 
-        # Primary data coverage trend
-        fig_cov = line_chart([
-            go.Bar(x=YEARS, y=pricov_vals, name="Primary data coverage",
-                   marker_color=COLORS["green"],
-                   hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-        ], title="Scope 3 Cat.1 — primary data coverage (%)", height=220)
-        st.plotly_chart(fig_cov, use_container_width=True)
+    ## Trend chart: primary data coverage over time
+    fig_cov = line_chart([
+        go.Bar(
+            x=YEARS,
+            y=pricov_vals,
+            name="Primary data coverage",
+            marker_color=COLORS["green"],
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+    ], title="Scope 3 Cat.1 — primary data coverage (%)", height=220)
 
-    with col2:
-        st.markdown('<div class="section-header">THE COMMERCIAL SIGNAL</div>',
-                    unsafe_allow_html=True)
-        st.markdown(f"""
+    ## Render coverage trend chart
+    st.plotly_chart(fig_cov, use_container_width=True)
+
+
+with col2:
+    ## Section header framing supplier expectations and pressure
+    st.markdown(
+        '<div class="section-header">THE COMMERCIAL SIGNAL</div>',
+        unsafe_allow_html=True
+    )
+
+    ## Metric card describing what VerdeMart will demand from suppliers
+    st.markdown(f"""
         <div class='metric-card red'>
+          
+          ## Card title
           <div class='metric-label'>What VerdeMart will demand from suppliers</div>
+          
+          ## Side-by-side comparison: programme enrolment vs SBTi validation
           <div style='display:flex;gap:10px;margin:10px 0;align-items:stretch;'>
+            
+            ## Enrolled suppliers (activity)
             <div style='flex:1;text-align:center;padding:14px 8px;background:#E6F1FB;border-radius:8px;'>
               <div style='font-size:30px;font-weight:700;color:#0C447C;'>{enrol_vals[-1]:.0f}%</div>
               <div style='font-size:11px;color:#185FA5;margin-top:4px;'>Enrolled in programme</div>
             </div>
+            
+            ## Arrow and gap indicator between enrolment and validation
             <div style='display:flex;align-items:center;flex-direction:column;
                         justify-content:center;padding:0 6px;'>
               <span style='font-size:20px;color:#9ca3af;'>→</span>
               <span style='font-size:10px;color:#A32D2D;font-weight:700;
                            margin-top:2px;text-align:center;'>
-                {sbti_gap:.0f}pp gap<br>widening</span>
+                {sbti_gap:.0f}pp gap<br>widening
+              </span>
             </div>
+            
+            ## SBTi-validated suppliers (outcome)
             <div style='flex:1;text-align:center;padding:14px 8px;background:#FCEBEB;border-radius:8px;'>
               <div style='font-size:30px;font-weight:700;color:#791F1F;'>{sbti_vals[-1]:.0f}%</div>
               <div style='font-size:11px;color:#A32D2D;margin-top:4px;'>SBTi validated targets</div>
             </div>
           </div>
+          
+          ## Interpretation of the engagement gap
           <div style='font-size:11px;color:#6b7280;line-height:1.5;'>
             {100-sbti_vals[-1]:.0f}% of supplier spend has made zero verified commitment.
             Formal SBTi supply conditions expected by 2025–2027.
           </div>
-          {badge("Enrolment is activity. SBTi is the only outcome that matters.","red")}
-        </div>""", unsafe_allow_html=True)
+          
+          ## Emphasis badge highlighting outcome vs activity
+          {badge("Enrolment is activity. SBTi is the only outcome that matters.", "red")}
+        </div>
+    """, unsafe_allow_html=True)
 
-        # Enrolment vs SBTi trend
-        fig_sup = line_chart([
-            go.Scatter(x=YEARS, y=enrol_vals, name="Enrolled (%)", mode="lines+markers",
-                       line=dict(color=COLORS["blue"], width=2),
-                       hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-            go.Scatter(x=YEARS, y=sbti_vals, name="SBTi validated (%)", mode="lines+markers",
-                       line=dict(color=COLORS["green"], width=2, dash="dot"),
-                       hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-        ], title="Supplier engagement — enrolled vs SBTi validated (%)", height=220)
-        st.plotly_chart(fig_sup, use_container_width=True)
+    ## Trend chart: supplier enrolment vs SBTi validation
+    fig_sup = line_chart([
+        go.Scatter(
+            x=YEARS,
+            y=enrol_vals,
+            name="Enrolled (%)",
+            mode="lines+markers",
+            line=dict(color=COLORS["blue"], width=2),
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+        go.Scatter(
+            x=YEARS,
+            y=sbti_vals,
+            name="SBTi validated (%)",
+            mode="lines+markers",
+            line=dict(color=COLORS["green"], width=2, dash="dot"),
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+    ], title="Supplier engagement — enrolled vs SBTi validated (%)", height=220)
 
-    # ── Row 2: Scope 3 chart ───────────────────────────────────────────────────
-    st.markdown('<div class="section-header">SCOPE 3 TRAJECTORY VS 2035 TARGET</div>',
-                unsafe_allow_html=True)
-    c1, c2 = st.columns([3, 1])
+    ## Render supplier engagement chart
+    st.plotly_chart(fig_sup, use_container_width=True)
 
-    with c1:
-        proj_years = [2019, 2021, 2022, 2023, 2027, 2031, 2035]
-        req_path   = [s3_2019, None, None, s3_2023,
-                      round(s3_2023 - (s3_2023-s3_target)/12*4, 2),
-                      round(s3_2023 - (s3_2023-s3_target)/12*8, 2),
-                      s3_target]
-        pace_path  = [s3_2019, None, None, s3_2023,
-                      round(s3_2023 - pace_actual*4, 2),
-                      round(s3_2023 - pace_actual*8, 2),
-                      proj_2035]
 
-        fig_s3 = line_chart([
-            go.Scatter(x=YEARS, y=s3_vals, name="Actual Scope 3", mode="lines+markers",
-                       line=dict(color=COLORS["green"], width=3), marker=dict(size=8),
-                       hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"),
-            go.Scatter(x=proj_years, y=req_path, name=f"Required path → {s3_target} Mt",
-                       mode="lines", line=dict(color=COLORS["red"], dash="dash", width=2),
-                       hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"),
-            go.Scatter(x=proj_years, y=pace_path,
-                       name=f"Current pace → {proj_2035} Mt",
-                       mode="lines", line=dict(color=COLORS["amber"], dash="dot", width=2),
-                       hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"),
-        ], title="Total Scope 3 (Mt CO₂e) — actual vs required path vs current pace", height=300)
-        fig_s3.add_hline(y=s3_target, line_dash="dot", line_color=COLORS["red"],
-                         annotation_text=f"2035 target: {s3_target} Mt",
-                         annotation_position="right")
-        st.plotly_chart(fig_s3, use_container_width=True)
-        st.markdown(
-            badge(f"⚠ At current pace: ~{proj_2035} Mt by 2035 — missing target by ~{gap_pct}%", "amber") +
-            badge("Cat.1 methodology not refreshed since 2020 — progress may not be real", "red"),
-            unsafe_allow_html=True)
+## ── Row 2: Scope 3 trajectory vs target ───────────────────────────────────
 
-    with c2:
-        st.markdown('<div style="margin-top:10px;">', unsafe_allow_html=True)
-        kpis = [
-            ("2035 Scope 3 target", f"{s3_target} Mt", f"−50% vs 2019 ({s3_2019} Mt)", "blue"),
-            ("Progress to date (2023)", f"{s3_2023} Mt", "−12.8% achieved; need −50%", "amber"),
-            ("At current pace (2035)", f"~{proj_2035} Mt", f"Miss by ~{gap_pct}%", "red"),
-            ("Pace needed vs achieved", f"+{round((((s3_2023-s3_target)/12)/pace_actual-1)*100)}% faster", "Acceleration needed", "red"),
-        ]
-        for label, val, sub, kind in kpis:
-            st.markdown(f"""
+## Section header for Scope 3 pathway comparison
+st.markdown(
+    '<div class="section-header">SCOPE 3 TRAJECTORY VS 2035 TARGET</div>',
+    unsafe_allow_html=True
+)
+
+## Create a two-column layout for chart and KPI summary
+c1, c2 = st.columns([3, 1])
+
+
+with c1:
+    ## Define projection years including future checkpoints
+    proj_years = [2019, 2021, 2022, 2023, 2027, 2031, 2035]
+
+    ## Required linear reduction path to hit the 2035 target
+    req_path = [
+        s3_2019, None, None, s3_2023,
+        round(s3_2023 - (s3_2023 - s3_target) / 12 * 4, 2),
+        round(s3_2023 - (s3_2023 - s3_target) / 12 * 8, 2),
+        s3_target
+    ]
+
+    ## Projected path based on current reduction pace
+    pace_path = [
+        s3_2019, None, None, s3_2023,
+        round(s3_2023 - pace_actual * 4, 2),
+        round(s3_2023 - pace_actual * 8, 2),
+        proj_2035
+    ]
+
+    ## Line chart comparing actual, required, and pace-based trajectories
+    fig_s3 = line_chart([
+        go.Scatter(
+            x=YEARS, y=s3_vals,
+            name="Actual Scope 3",
+            mode="lines+markers",
+            line=dict(color=COLORS["green"], width=3),
+            marker=dict(size=8),
+            hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"
+        ),
+        go.Scatter(
+            x=proj_years, y=req_path,
+            name=f"Required path → {s3_target} Mt",
+            mode="lines",
+            line=dict(color=COLORS["red"], dash="dash", width=2),
+            hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"
+        ),
+        go.Scatter(
+            x=proj_years, y=pace_path,
+            name=f"Current pace → {proj_2035} Mt",
+            mode="lines",
+            line=dict(color=COLORS["amber"], dash="dot", width=2),
+            hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>"
+        ),
+    ], title="Total Scope 3 (Mt CO₂e) — actual vs required path vs current pace", height=300)
+
+    ## Horizontal line marking the 2035 target
+    fig_s3.add_hline(
+        y=s3_target,
+        line_dash="dot",
+        line_color=COLORS["red"],
+        annotation_text=f"2035 target: {s3_target} Mt",
+        annotation_position="right"
+    )
+
+    ## Render trajectory chart
+    st.plotly_chart(fig_s3, use_container_width=True)
+
+    ## Summary warning badges highlighting gap and methodology risk
+    st.markdown(
+        badge(
+            f"⚠ At current pace: ~{proj_2035} Mt by 2035 — missing target by ~{gap_pct}%",
+            "amber"
+        ) +
+        badge(
+            "Cat.1 methodology not refreshed since 2020 — progress may not be real",
+            "red"
+        ),
+        unsafe_allow_html=True
+    )
+
+
+with c2:
+    ## Spacer to align KPI cards vertically with chart
+    st.markdown('<div style="margin-top:10px;">', unsafe_allow_html=True)
+
+    ## KPI summary cards quantifying target, progress, and pace mismatch
+    kpis = [
+        ("2035 Scope 3 target", f"{s3_target} Mt", f"−50% vs 2019 ({s3_2019} Mt)", "blue"),
+        ("Progress to date (2023)", f"{s3_2023} Mt", "−12.8% achieved; need −50%", "amber"),
+        ("At current pace (2035)", f"~{proj_2035} Mt", f"Miss by ~{gap_pct}%", "red"),
+        (
+            "Pace needed vs achieved",
+            f"+{round((((s3_2023 - s3_target) / 12) / pace_actual - 1) * 100)}% faster",
+            "Acceleration needed",
+            "red"
+        ),
+    ]
+
+    ## Render each KPI as a compact metric card
+    for label, val, sub, kind in kpis:
+        st.markdown(f"""
             <div class='metric-card {kind}' style='padding:10px 14px;margin-bottom:6px;'>
               <div class='metric-label'>{label}</div>
               <div style='font-size:18px;font-weight:700;
                 color:#{"791F1F" if kind=="red" else "633806" if kind=="amber" else "0C447C"};'>
-                {val}</div>
+                {val}
+              </div>
               <div class='metric-sub'>{sub}</div>
-            </div>""", unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
 
     # ── Row 3: HFC + Packaging + Food ─────────────────────────────────────────
-    st.markdown('<div class="section-header">SECONDARY METRICS</div>',
-                unsafe_allow_html=True)
-    c3, c4, c5 = st.columns(3)
+## Section header introducing additional operational and environmental indicators
+st.markdown(
+    '<div class="section-header">SECONDARY METRICS</div>',
+    unsafe_allow_html=True
+)
 
-    with c3:
-        fig_hfc = line_chart([
-            go.Scatter(x=YEARS, y=hfc_vals, name="HFC leakage rate (%)",
-                       mode="lines+markers",
-                       line=dict(color=COLORS["amber"], width=3), marker=dict(size=8),
-                       hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-        ], title="HFC refrigerant leakage rate (%)", height=230)
-        fig_hfc.add_hline(y=15, line_dash="dot", line_color=COLORS["green"],
-                          annotation_text="Industry benchmark 15%",
-                          annotation_position="right")
-        st.plotly_chart(fig_hfc, use_container_width=True)
-        st.markdown(
-            badge("Now at industry benchmark (~15%) ✓", "green") +
-            badge("⚠ Franchise stores (18%) excluded", "amber"),
-            unsafe_allow_html=True)
+## Create a three-column layout for refrigerants, plastics, and food waste
+c3, c4, c5 = st.columns(3)
 
-    with c4:
-        fig_pl = bar_chart(YEARS, plast_vals, COLORS["blue"],
-                           "Own-brand plastic packaging (kt)", height=230,
-                           text=[f"{v:.0f} kt" for v in plast_vals])
-        st.plotly_chart(fig_pl, use_container_width=True)
-        st.markdown(
-            badge("⚠ Definition changed 2022 — pre-2022 NOT comparable", "red"),
-            unsafe_allow_html=True)
 
-    with c5:
-        fig_fw = line_chart([
-            go.Scatter(x=YEARS, y=foodw_vals,
-                       name="Food waste intensity (kg/m²)",
-                       mode="lines+markers",
-                       line=dict(color="#9333ea", width=3), marker=dict(size=8),
-                       hovertemplate="%{x}: %{y:.2f} kg/m²<extra></extra>"),
-        ], title="Food waste intensity (kg/m² selling space)", height=230)
-        st.plotly_chart(fig_fw, use_container_width=True)
-        st.markdown(
-            badge("⚠ Absolute tonnage undisclosed — estate expanding", "amber") +
-            badge("⚠ Intensity ≠ absolute", "amber"),
-            unsafe_allow_html=True)
+with c3:
+    ## Line chart showing HFC refrigerant leakage rate over time
+    fig_hfc = line_chart([
+        go.Scatter(
+            x=YEARS,
+            y=hfc_vals,
+            name="HFC leakage rate (%)",
+            mode="lines+markers",
+            line=dict(color=COLORS["amber"], width=3),
+            marker=dict(size=8),
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+    ], title="HFC refrigerant leakage rate (%)", height=230)
 
-    # ── Row 4: Energy + RE ────────────────────────────────────────────────────
-    c6, c7 = st.columns(2)
-    with c6:
-        energy_vals = series(r_energy)
-        fig_en = bar_chart(YEARS, energy_vals, COLORS["gray"],
-                           "Total energy consumption (PJ)", height=220,
-                           text=[f"{v:.0f} PJ" for v in energy_vals])
-        st.plotly_chart(fig_en, use_container_width=True)
-    with c7:
-        fig_re = line_chart([
-            go.Scatter(x=YEARS, y=re_vals, name="Renewable electricity %",
-                       mode="lines+markers", fill="tozeroy",
-                       fillcolor="rgba(29,158,117,0.1)",
-                       line=dict(color=COLORS["green"], width=3), marker=dict(size=8),
-                       hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-        ], title="Renewable electricity share (%)", height=220)
-        st.plotly_chart(fig_re, use_container_width=True)
-        st.markdown(
-            badge("⚠ 38% backed by RECs — additionality not verified", "amber"),
-            unsafe_allow_html=True)
+    ## Add horizontal reference line for industry benchmark
+    fig_hfc.add_hline(
+        y=15,
+        line_dash="dot",
+        line_color=COLORS["green"],
+        annotation_text="Industry benchmark 15%",
+        annotation_position="right"
+    )
 
-# ── Footer ─────────────────────────────────────────────────────────────────────
+    ## Render the HFC leakage chart
+    st.plotly_chart(fig_hfc, use_container_width=True)
+
+    ## Contextual badges noting benchmark performance and data exclusions
+    st.markdown(
+        badge("Now at industry benchmark (~15%) ✓", "green") +
+        badge("⚠ Franchise stores (18%) excluded", "amber"),
+        unsafe_allow_html=True
+    )
+
+
+with c4:
+    ## Bar chart showing absolute own-brand plastic packaging volumes
+    fig_pl = bar_chart(
+        YEARS,
+        plast_vals,
+        COLORS["blue"],
+        "Own-brand plastic packaging (kt)",
+        height=230,
+        text=[f"{v:.0f} kt" for v in plast_vals]
+    )
+
+    ## Render the plastic packaging chart
+    st.plotly_chart(fig_pl, use_container_width=True)
+
+    ## Warning badge highlighting a historical definition change
+    st.markdown(
+        badge("⚠ Definition changed 2022 — pre-2022 NOT comparable", "red"),
+        unsafe_allow_html=True
+    )
+
+
+with c5:
+    ## Line chart showing food waste intensity per square meter
+    fig_fw = line_chart([
+        go.Scatter(
+            x=YEARS,
+            y=foodw_vals,
+            name="Food waste intensity (kg/m²)",
+            mode="lines+markers",
+            line=dict(color="#9333ea", width=3),
+            marker=dict(size=8),
+            hovertemplate="%{x}: %{y:.2f} kg/m²<extra></extra>"
+        ),
+    ], title="Food waste intensity (kg/m² selling space)", height=230)
+
+    ## Render the food waste intensity chart
+    st.plotly_chart(fig_fw, use_container_width=True)
+
+    ## Badges clarifying limits of intensity-based disclosure
+    st.markdown(
+        badge("⚠ Absolute tonnage undisclosed — estate expanding", "amber") +
+        badge("⚠ Intensity ≠ absolute", "amber"),
+        unsafe_allow_html=True
+    )
+
+
+## ── Row 4: Energy consumption and renewable electricity ────────────────────
+
+## Create a two-column layout for energy and renewable electricity
+c6, c7 = st.columns(2)
+
+
+with c6:
+    ## Extract total energy consumption values
+    energy_vals = series(r_energy)
+
+    ## Bar chart showing total energy consumption over time
+    fig_en = bar_chart(
+        YEARS,
+        energy_vals,
+        COLORS["gray"],
+        "Total energy consumption (PJ)",
+        height=220,
+        text=[f"{v:.0f} PJ" for v in energy_vals]
+    )
+
+    ## Render the energy consumption chart
+    st.plotly_chart(fig_en, use_container_width=True)
+
+
+with c7:
+    ## Line / area chart showing renewable electricity share
+    fig_re = line_chart([
+        go.Scatter(
+            x=YEARS,
+            y=re_vals,
+            name="Renewable electricity %",
+            mode="lines+markers",
+            fill="tozeroy",
+            fillcolor="rgba(29,158,117,0.1)",
+            line=dict(color=COLORS["green"], width=3),
+            marker=dict(size=8),
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+    ], title="Renewable electricity share (%)", height=220)
+
+    ## Render the renewable electricity chart
+    st.plotly_chart(fig_re, use_container_width=True)
+
+    ## Badge flagging quality and additionality of renewable claims
+    st.markdown(
+        badge("⚠ 38% backed by RECs — additionality not verified", "amber"),
+        unsafe_allow_html=True
+    )
+
+
+## ── Footer ──────────────────────────────────────────────────────────────────
+
+## Visual separator before footer
 st.markdown("---")
-st.caption("ESG Analytics Lab 3 — Module 3 · Data: Lab3_Minicases_data_ecercise_canvas.xlsx · "
-           "Built with Streamlit + Plotly")
+
+## Footer caption describing module context and data source
+st.caption(
+    "ESG Analytics Lab 3 — Module 3 · Data: Lab3_Minicases_data_ecercise_canvas.xlsx · "
+    "Built with Streamlit + Plotly"
+)
