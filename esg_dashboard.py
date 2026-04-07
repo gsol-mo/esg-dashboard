@@ -204,12 +204,15 @@ with st.sidebar:
     st.markdown("## 🌿 ESG Lab 3 — Module 3")
     st.markdown("---")
 
-    uploaded = st.file_uploader("Upload your Excel dataset", type=["xlsx"],
-                                 help="Upload a new version of the dataset to refresh all charts")
-    if uploaded:
-        data_path = uploaded
-    else:
-        data_path = "Lab3_Minicases_data_exercise_canvas.xlsx"
+uploaded = st.file_uploader("Upload your Excel dataset", type=["xlsx"])
+
+if uploaded is not None:
+    st.info("Using uploaded file")
+    data = load_data(uploaded)
+else:
+    st.info("Using default dataset")
+    data = load_data("Lab3_Minicases_data_exercise_canvas.xlsx")
+
 
     company = st.radio("Select company", ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"])
     st.markdown("---")
