@@ -209,7 +209,7 @@ with st.sidebar:
     if uploaded:
         data_path = uploaded
     else:
-        data_path = "Lab3_Minicases_data_ecercise_canvas.xlsx"
+        data_path = "Lab3_Minicases_data_exercise_canvas.xlsx"
 
     company = st.radio("Select company", ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"])
     st.markdown("---")
@@ -221,7 +221,7 @@ with st.sidebar:
 - **Data integrity** — 25 pts
     """)
     st.markdown("---")
-    st.caption("Data: Lab3_Minicases_data_ecercise_canvas.xlsx")
+    st.caption("Data: Lab3_Minicases_data_exercise_canvas.xlsx")
 
 # ── Load ──────────────────────────────────────────────────────────────────────
 try:
@@ -1347,6 +1347,6 @@ st.markdown("---")
 
 ## Footer caption describing module context and data source
 st.caption(
-    "ESG Analytics Lab 3 — Module 3 · Data: Lab3_Minicases_data_ecercise_canvas.xlsx · "
+    "ESG Analytics Lab 3 — Module 3 · Data: Lab3_Minicases_data_exercise_canvas.xlsx · "
     "Built with Streamlit + Plotly"
 )
