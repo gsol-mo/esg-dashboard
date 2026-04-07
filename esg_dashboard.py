@@ -323,134 +323,237 @@ st.markdown(f"""
 ``
 
     # ── Row 1: Framing + Milestones ────────────────────────────────────────────
-    col1, col2 = st.columns([2, 1])
+## Create a two-column layout:
+## - col1 is wider (main analysis)
+## - col2 is narrower (governance & assurance)
+col1, col2 = st.columns([2, 1])
 
-    with col1:
-        st.markdown('<div class="section-header">FOOTPRINT REALITY CHECK</div>',
-                    unsafe_allow_html=True)
-        st.markdown(f"""
+with col1:
+    ## Section header for the emissions footprint analysis
+    st.markdown(
+        '<div class="section-header">FOOTPRINT REALITY CHECK</div>',
+        unsafe_allow_html=True
+    )
+
+    ## Main critique card highlighting scope coverage issues
+    st.markdown(f"""
+        ## Metric card styled as a "red" risk / warning block
         <div class='metric-card red'>
+          
+          ## Card title describing the core issue
           <div class='metric-label'>The framing problem</div>
+          
+          ## Explanatory text quantifying scope coverage of the target
           <div style='font-size:13px;color:#4b5563;margin-bottom:10px;'>
             The 50% reduction target covers only <strong>{s12_pct}%</strong> of NordPetro's
             total 2023 footprint. There is <strong>no published pathway</strong> for
             the remaining <strong>{s3_pct}%</strong>.
           </div>
-          {progress_bar_html(s12_pct, "#185FA5", f"Scope 1+2 target boundary: {s12_2023} Mt", f"of {total_2023:.0f} Mt total")}
+          
+          ## Visual progress bar showing Scope 1+2 boundary vs total footprint
+          {progress_bar_html(
+              s12_pct,
+              "#185FA5",
+              f"Scope 1+2 target boundary: {s12_2023} Mt",
+              f"of {total_2023:.0f} Mt total"
+          )}
+          
+          ## Highlight bar explicitly calling out unmanaged Scope 3 emissions
           <div style='background:#E24B4A;border-radius:0 6px 6px 0;padding:6px 12px;
                       font-size:11px;color:#fff;font-weight:600;margin-top:4px;'>
             Scope 3 Cat.11: {s3_2023} Mt — {s3_pct}% of footprint — NO target, NO pathway
           </div>
-          {badge("Net-zero 2050 pledge — no Scope 3 pathway published as of 2023","red")}
-        </div>""", unsafe_allow_html=True)
+          
+          ## Badge reinforcing the absence of a Scope 3 transition plan
+          {badge(
+              "Net-zero 2050 pledge — no Scope 3 pathway published as of 2023",
+              "red"
+          )}
+        </div>
+    """, unsafe_allow_html=True)
 
-        # Footprint breakdown donut
-        fig_foot = go.Figure(go.Pie(
-            values=[s12_2023, s3_2023],
-            labels=["Scope 1+2 (target)", "Scope 3 Cat.11 (no pathway)"],
-            hole=0.55,
-            marker_colors=[COLORS["blue"], COLORS["red"]],
-            textinfo="percent+label",
-            textfont_size=11,
-            hovertemplate="%{label}: %{value} Mt (%{percent})<extra></extra>",
-        ))
-        fig_foot.update_layout(
-            **{k: v for k, v in PLOT_LAYOUT.items() if k != "xaxis" and k != "yaxis"},
-            height=220,
-            showlegend=False,
-            annotations=[dict(text=f"<b>{total_2023:.0f} Mt</b><br>total",
-                              x=0.5, y=0.5, font_size=13, showarrow=False)]
-        )
-        st.plotly_chart(fig_foot, use_container_width=True)
+    ## Donut chart visualizing 2023 footprint breakdown
+    ## Scope 1+2 vs Scope 3 Category 11
+    fig_foot = go.Figure(go.Pie(
+        values=[s12_2023, s3_2023],
+        labels=["Scope 1+2 (target)", "Scope 3 Cat.11 (no pathway)"],
+        hole=0.55,
+        marker_colors=[COLORS["blue"], COLORS["red"]],
+        textinfo="percent+label",
+        textfont_size=11,
+        hovertemplate="%{label}: %{value} Mt (%{percent})<extra></extra>",
+    ))
 
-    with col2:
-        st.markdown('<div class="section-header">ACCOUNTABILITY STRUCTURE</div>',
-                    unsafe_allow_html=True)
-        st.markdown("""
+    ## Apply shared layout settings and add a centered total annotation
+    fig_foot.update_layout(
+        **{k: v for k, v in PLOT_LAYOUT.items() if k != "xaxis" and k != "yaxis"},
+        height=220,
+        showlegend=False,
+        annotations=[dict(
+            text=f"<b>{total_2023:.0f} Mt</b><br>total",
+            x=0.5, y=0.5,
+            font_size=13,
+            showarrow=False
+        )]
+    )
+
+    ## Render the Plotly chart full-width within the column
+    st.plotly_chart(fig_foot, use_container_width=True)
+
+
+with col2:
+    ## Section header for governance and milestone structure
+    st.markdown(
+        '<div class="section-header">ACCOUNTABILITY STRUCTURE</div>',
+        unsafe_allow_html=True
+    )
+
+    ## Card evaluating whether interim milestones exist
+    st.markdown("""
         <div class='metric-card red'>
+          
+          ## Card title questioning interim accountability
           <div class='metric-label'>Interim milestones published?</div>
+          
+          ## Row of milestone tiles for key years
           <div style='display:flex;gap:6px;margin:10px 0;'>
+            
+            ## 2025 milestone: none
             <div style='flex:1;text-align:center;padding:10px 4px;background:#FCEBEB;border-radius:8px;'>
               <div style='font-size:14px;font-weight:700;color:#791F1F;'>2025</div>
               <div style='font-size:11px;color:#A32D2D;'>✕ none</div>
             </div>
+            
+            ## 2027 milestone: none
             <div style='flex:1;text-align:center;padding:10px 4px;background:#FCEBEB;border-radius:8px;'>
               <div style='font-size:14px;font-weight:700;color:#791F1F;'>2027</div>
               <div style='font-size:11px;color:#A32D2D;'>✕ none</div>
             </div>
+            
+            ## 2030 milestone: none
             <div style='flex:1;text-align:center;padding:10px 4px;background:#FCEBEB;border-radius:8px;'>
               <div style='font-size:14px;font-weight:700;color:#791F1F;'>2030</div>
               <div style='font-size:11px;color:#A32D2D;'>✕ none</div>
             </div>
+            
+            ## 2035 milestone: −50% target
             <div style='flex:1;text-align:center;padding:10px 4px;background:#E6F1FB;border-radius:8px;'>
               <div style='font-size:14px;font-weight:700;color:#0C447C;'>2035</div>
               <div style='font-size:11px;color:#185FA5;'>−50%</div>
             </div>
           </div>
+          
+          ## Interpretation of milestone gap
           <div style='font-size:11px;color:#6b7280;line-height:1.5;'>
             No checkpoint until 2035. Slippage structurally undetectable for 12 years.
           </div>
-        </div>""", unsafe_allow_html=True)
+        </div>
+    """, unsafe_allow_html=True)
 
-        st.markdown('<div class="section-header">DATA ASSURANCE</div>',
-                    unsafe_allow_html=True)
-        for yr, status, kind in [
-            (2019, "EY assured ✓", "green"), (2021, "EY assured ✓", "green"),
-            (2022, "EY assured ✓", "green"), (2023, "Partial only ⚠", "amber"),
-        ]:
-            st.markdown(
-                f"<div style='display:flex;justify-content:space-between;align-items:center;"
-                f"padding:5px 0;border-bottom:0.5px solid #f3f4f6;'>"
-                f"<span style='font-size:12px;color:#6b7280;'>{yr}</span>"
-                f"{badge(status, kind)}</div>",
-                unsafe_allow_html=True)
+    ## Section header for data assurance status
+    st.markdown(
+        '<div class="section-header">DATA ASSURANCE</div>',
+        unsafe_allow_html=True
+    )
 
-    # ── Row 2: Charts ──────────────────────────────────────────────────────────
-    st.markdown('<div class="section-header">EMISSIONS TRAJECTORY & TARGETS</div>',
-                unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-
-    with c1:
-        fig = line_chart([
-            go.Scatter(
-                x=YEARS, y=s12_vals,
-                name="Actual Scope 1+2", mode="lines+markers",
-                line=dict(color=COLORS["blue"], width=3),
-                marker=dict(size=7),
-                hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>",
-            ),
-            go.Scatter(
-                x=[2019, 2023, 2027, 2031, 2035],
-                y=[21.5, 18.0, 16.17, 14.33, target_35],
-                name="Required path → 10.75 Mt",
-                mode="lines", line=dict(color=COLORS["red"], dash="dash", width=2),
-                hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>",
-            ),
-        ], title="Scope 1+2 vs 2035 target")
-        fig.add_hline(y=target_35, line_dash="dot", line_color=COLORS["red"],
-                      annotation_text=f"Target: {target_35} Mt", annotation_position="right")
-        st.plotly_chart(fig, use_container_width=True)
+    ## Loop through each year and render its assurance status as a row
+    for yr, status, kind in [
+        (2019, "EY assured ✓", "green"),
+        (2021, "EY assured ✓", "green"),
+        (2022, "EY assured ✓", "green"),
+        (2023, "Partial only ⚠", "amber"),
+    ]:
         st.markdown(
-            f"{badge(f'Change vs 2019: {pct_change}%', 'green' if pct_change < 0 else 'red')}"
-            f"{badge('⚠ Scope 2 mkt-based: 0.90 Mt lower than location-based','amber')}",
-            unsafe_allow_html=True)
+            f"<div style='display:flex;justify-content:space-between;align-items:center;"
+            f"padding:5px 0;border-bottom:0.5px solid #f3f4f6;'>"
+            f"<span style='font-size:12px;color:#6b7280;'>{yr}</span>"
+            f"{badge(status, kind)}</div>",
+            unsafe_allow_html=True
+        )
+        
+    # ── Row 2: Charts ──────────────────────────────────────────────────────────
+    ## Section header introducing emissions trends and targets
+st.markdown(
+    '<div class="section-header">EMISSIONS TRAJECTORY & TARGETS</div>',
+    unsafe_allow_html=True
+)
 
-    with c2:
-        meth_vals = [v * 100 if v and v < 1 else v for v in series(r_meth)]
-        fig2 = line_chart([
-            go.Scatter(
-                x=YEARS, y=meth_vals,
-                name="Methane intensity (% gas produced)",
-                mode="lines+markers",
-                line=dict(color=COLORS["amber"], width=3),
-                marker=dict(size=7),
-                hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
-            ),
-        ], title="Methane intensity (% of gas produced)")
-        st.plotly_chart(fig2, use_container_width=True)
-        # OGMP pips
-        st.markdown("""
-        <div style='font-size:11px;color:#6b7280;margin-bottom:4px;'>OGMP 2.0 level (stagnant since joining)</div>
+## Create a three-column layout for trajectories, methane, and capex
+c1, c2, c3 = st.columns(3)
+
+
+with c1:
+    ## Line chart comparing actual Scope 1+2 emissions vs required reduction pathway
+    fig = line_chart([
+        ## Actual reported Scope 1+2 emissions over time
+        go.Scatter(
+            x=YEARS, y=s12_vals,
+            name="Actual Scope 1+2",
+            mode="lines+markers",
+            line=dict(color=COLORS["blue"], width=3),
+            marker=dict(size=7),
+            hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>",
+        ),
+
+        ## Implied straight-line pathway required to hit the 2035 target
+        go.Scatter(
+            x=[2019, 2023, 2027, 2031, 2035],
+            y=[21.5, 18.0, 16.17, 14.33, target_35],
+            name="Required path → 10.75 Mt",
+            mode="lines",
+            line=dict(color=COLORS["red"], dash="dash", width=2),
+            hovertemplate="%{x}: %{y:.2f} Mt<extra></extra>",
+        ),
+    ], title="Scope 1+2 vs 2035 target")
+
+    ## Horizontal reference line marking the 2035 emissions target
+    fig.add_hline(
+        y=target_35,
+        line_dash="dot",
+        line_color=COLORS["red"],
+        annotation_text=f"Target: {target_35} Mt",
+        annotation_position="right"
+    )
+
+    ## Render the line chart
+    st.plotly_chart(fig, use_container_width=True)
+
+    ## Summary badges highlighting percent change and Scope 2 methodology caveat
+    st.markdown(
+        f"{badge(f'Change vs 2019: {pct_change}%', 'green' if pct_change < 0 else 'red')}"
+        f"{badge('⚠ Scope 2 mkt-based: 0.90 Mt lower than location-based', 'amber')}",
+        unsafe_allow_html=True
+    )
+
+
+with c2:
+    ## Normalize methane intensity values:
+    ## Convert fractions (<1) to percentages for consistent display
+    meth_vals = [v * 100 if v and v < 1 else v for v in series(r_meth)]
+
+    ## Line chart showing methane intensity trend
+    fig2 = line_chart([
+        go.Scatter(
+            x=YEARS, y=meth_vals,
+            name="Methane intensity (% gas produced)",
+            mode="lines+markers",
+            line=dict(color=COLORS["amber"], width=3),
+            marker=dict(size=7),
+            hovertemplate="%{x}: %{y:.1f}%<extra></extra>",
+        ),
+    ], title="Methane intensity (% of gas produced)")
+
+    ## Render methane intensity chart
+    st.plotly_chart(fig2, use_container_width=True)
+
+    ## OGMP 2.0 progress indicator (visual level pips)
+    st.markdown("""
+        ## OGMP participation level indicator
+        <div style='font-size:11px;color:#6b7280;margin-bottom:4px;'>
+          OGMP 2.0 level (stagnant since joining)
+        </div>
+
+        ## Five-level progress bar (L1–L5)
         <div style='display:flex;gap:4px;'>
           <div style='flex:1;height:10px;border-radius:3px;background:#378ADD;'></div>
           <div style='flex:1;height:10px;border-radius:3px;background:#378ADD;'></div>
@@ -458,116 +561,295 @@ st.markdown(f"""
           <div style='flex:1;height:10px;border-radius:3px;background:#e5e7eb;border:1px solid #d1d5db;'></div>
           <div style='flex:1;height:10px;border-radius:3px;background:#e5e7eb;border:1px solid #d1d5db;'></div>
         </div>
+
+        ## Labels for OGMP levels
         <div style='display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-top:3px;'>
-          <span>L1</span><span>L2</span><span style='color:#185FA5;font-weight:700;'>L3 ▲ stagnant</span><span>L4</span><span>L5 gold</span>
-        </div>""", unsafe_allow_html=True)
-        st.markdown(badge("⚠ Engineering estimates — not direct measurement", "amber"),
-                    unsafe_allow_html=True)
+          <span>L1</span>
+          <span>L2</span>
+          <span style='color:#185FA5;font-weight:700;'>L3 ▲ stagnant</span>
+          <span>L4</span>
+          <span>L5 gold</span>
+        </div>
+    """, unsafe_allow_html=True)
 
-    with c3:
-        capex_vals = series(r_capex)
-        capex_pct  = [v * 100 if v and v < 1 else v for v in series(r_capex_pct)]
-        fig3 = make_subplots(specs=[[{"secondary_y": True}]])
-        fig3.add_trace(
-            go.Bar(x=YEARS, y=capex_vals, name="Green capex ($M)",
-                   marker_color=[f"rgba(24,95,165,{a})" for a in [0.3,0.5,0.7,0.9]],
-                   hovertemplate="%{x}: $%{y:,}M<extra></extra>"),
-            secondary_y=False)
-        fig3.add_trace(
-            go.Scatter(x=YEARS, y=capex_pct, name="% of total capex",
-                       mode="lines+markers", line=dict(color=COLORS["amber"], width=2),
-                       hovertemplate="%{x}: %{y:.0f}%<extra></extra>"),
-            secondary_y=True)
-        fig3.update_layout(**{k: v for k, v in PLOT_LAYOUT.items()
-                               if k not in ("xaxis","yaxis")},
-                           height=260, title=dict(text="Green capex", font_size=12, x=0))
-        fig3.update_yaxes(title_text="USD M", secondary_y=False, gridcolor="#f3f4f6")
-        fig3.update_yaxes(title_text="% of total capex", secondary_y=True, showgrid=False)
-        st.plotly_chart(fig3, use_container_width=True)
-        st.markdown(badge("⚠ Internal taxonomy — not EU Taxonomy. Unverifiable.", "amber"),
-                    unsafe_allow_html=True)
+    ## Data quality warning for methane estimates
+    st.markdown(
+        badge("⚠ Engineering estimates — not direct measurement", "amber"),
+        unsafe_allow_html=True
+    )
 
+
+with c3:
+    ## Extract green capex absolute values
+    capex_vals = series(r_capex)
+
+    ## Normalize capex percentage values (convert <1 to %)
+    capex_pct = [v * 100 if v and v < 1 else v for v in series(r_capex_pct)]
+
+    ## Create a dual-axis chart for absolute and relative green capex
+    fig3 = make_subplots(specs=[[{"secondary_y": True}]])
+
+    ## Bar chart for absolute green capex (USD millions)
+    fig3.add_trace(
+        go.Bar(
+            x=YEARS,
+            y=capex_vals,
+            name="Green capex ($M)",
+            marker_color=[f"rgba(24,95,165,{a})" for a in [0.3, 0.5, 0.7, 0.9]],
+            hovertemplate="%{x}: $%{y:,}M<extra></extra>"
+        ),
+        secondary_y=False
+    )
+
+    ## Line chart for green capex as a percentage of total capex
+    fig3.add_trace(
+        go.Scatter(
+            x=YEARS,
+            y=capex_pct,
+            name="% of total capex",
+            mode="lines+markers",
+            line=dict(color=COLORS["amber"], width=2),
+            hovertemplate="%{x}: %{y:.0f}%<extra></extra>"
+        ),
+        secondary_y=True
+    )
+
+    ## Apply shared layout settings and compact sizing
+    fig3.update_layout(
+        **{k: v for k, v in PLOT_LAYOUT.items() if k not in ("xaxis", "yaxis")},
+        height=260,
+        title=dict(text="Green capex", font_size=12, x=0)
+    )
+
+    ## Configure y-axes labeling and grid behavior
+    fig3.update_yaxes(title_text="USD M", secondary_y=False, gridcolor="#f3f4f6")
+    fig3.update_yaxes(title_text="% of total capex", secondary_y=True, showgrid=False)
+
+    ## Render the green capex chart
+    st.plotly_chart(fig3, use_container_width=True)
+
+    ## Governance / taxonomy warning badge
+    st.markdown(
+        badge("⚠ Internal taxonomy — not EU Taxonomy. Unverifiable.", "amber"),
+        unsafe_allow_html=True
+    )
+    
     # ── Row 3: Scope 3 + Integrity ─────────────────────────────────────────────
-    st.markdown('<div class="section-header">SCOPE 3 DISCLOSURE & DATA INTEGRITY</div>',
-                unsafe_allow_html=True)
-    c4, c5 = st.columns([3, 2])
+    ## Section header introducing Scope 3 disclosure quality and data reliability
+st.markdown(
+    '<div class="section-header">SCOPE 3 DISCLOSURE & DATA INTEGRITY</div>',
+    unsafe_allow_html=True
+)
 
-    with c4:
-        total_vals = series(r_total)
-        fig4 = go.Figure()
-        fig4.add_trace(go.Bar(
-            x=YEARS, y=s12_vals, name="Scope 1+2",
-            marker_color=COLORS["blue"],
-            hovertemplate="%{x}: %{y:.2f} Mt S1+2<extra></extra>",
-        ))
-        fig4.add_trace(go.Bar(
-            x=YEARS, y=s3c11_vals, name="Scope 3 Cat.11 (no pathway)",
-            marker_color=COLORS["red"],
-            hovertemplate="%{x}: %{y:.0f} Mt S3 (est.)<extra></extra>",
-        ))
-        fig4.update_layout(
-            **{k: v for k, v in PLOT_LAYOUT.items()},
-            barmode="stack", height=280,
-            title=dict(text="Total footprint — Scope 1+2 + Scope 3 Cat.11 (stacked)", font_size=12, x=0),
-        )
-        st.plotly_chart(fig4, use_container_width=True)
-        st.markdown(
-            badge("⚠ Scope 3 estimated via IEA factors — not measured", "amber") +
-            badge("No Scope 3 net-zero pathway published", "red"),
-            unsafe_allow_html=True)
+## Create a two-column layout:
+## - c4: visual Scope 1+2 vs Scope 3 footprint
+## - c5: qualitative disclosure scorecard
+c4, c5 = st.columns([3, 2])
 
-    with c5:
-        st.markdown('<div style="margin-top:10px;">', unsafe_allow_html=True)
-        scorecard = [
-            ("Target scope", f"{s12_pct}% of footprint", "Only Scope 1+2", "red"),
-            ("Interim milestones", "None published", "End-target only: 2035", "red"),
-            ("2023 assurance", "Partial (EY)", "2019–2022 fully assured", "amber"),
-            ("Green capex taxonomy", "Internal only", "Not EU Taxonomy aligned", "amber"),
-            ("OGMP level", "L3 / stagnant", "No upgrade timeline", "amber"),
-        ]
-        for label, val, sub, kind in scorecard:
-            st.markdown(f"""
+
+with c4:
+    ## Extract total footprint values across years
+    total_vals = series(r_total)
+
+    ## Create a stacked bar chart for total emissions footprint
+    fig4 = go.Figure()
+
+    ## Add Scope 1+2 emissions bars
+    fig4.add_trace(go.Bar(
+        x=YEARS,
+        y=s12_vals,
+        name="Scope 1+2",
+        marker_color=COLORS["blue"],
+        hovertemplate="%{x}: %{y:.2f} Mt S1+2<extra></extra>",
+    ))
+
+    ## Add Scope 3 Category 11 emissions bars (no reduction pathway)
+    fig4.add_trace(go.Bar(
+        x=YEARS,
+        y=s3c11_vals,
+        name="Scope 3 Cat.11 (no pathway)",
+        marker_color=COLORS["red"],
+        hovertemplate="%{x}: %{y:.0f} Mt S3 (est.)<extra></extra>",
+    ))
+
+    ## Stack bars and apply shared layout styling
+    fig4.update_layout(
+        **{k: v for k, v in PLOT_LAYOUT.items()},
+        barmode="stack",
+        height=280,
+        title=dict(
+            text="Total footprint — Scope 1+2 + Scope 3 Cat.11 (stacked)",
+            font_size=12,
+            x=0
+        ),
+    )
+
+    ## Render the stacked footprint chart
+    st.plotly_chart(fig4, use_container_width=True)
+
+    ## Disclosure and data quality warnings related to Scope 3
+    st.markdown(
+        badge("⚠ Scope 3 estimated via IEA factors — not measured", "amber") +
+        badge("No Scope 3 net-zero pathway published", "red"),
+        unsafe_allow_html=True
+    )
+
+
+with c5:
+    ## Spacer div to visually align the scorecard with the chart
+    st.markdown('<div style="margin-top:10px;">', unsafe_allow_html=True)
+
+    ## Scorecard summarizing key disclosure and governance weaknesses
+    scorecard = [
+        ("Target scope", f"{s12_pct}% of footprint", "Only Scope 1+2", "red"),
+        ("Interim milestones", "None published", "End-target only: 2035", "red"),
+        ("2023 assurance", "Partial (EY)", "2019–2022 fully assured", "amber"),
+        ("Green capex taxonomy", "Internal only", "Not EU Taxonomy aligned", "amber"),
+        ("OGMP level", "L3 / stagnant", "No upgrade timeline", "amber"),
+    ]
+
+    ## Render each scorecard item as a compact metric card
+    for label, val, sub, kind in scorecard:
+        st.markdown(f"""
+            ## Individual scorecard entry
             <div class='metric-card {kind}' style='padding:10px 14px;margin-bottom:6px;'>
+              
+              ## Metric label
               <div class='metric-label'>{label}</div>
+              
+              ## Primary value with color adjusted by severity
               <div style='font-size:16px;font-weight:700;color:#{"791F1F" if kind=="red" else "633806"};'>
-                {val}</div>
+                {val}
+              </div>
+              
+              ## Supporting explanatory text
               <div class='metric-sub'>{sub}</div>
-            </div>""", unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
+
+
+## ── Row 4: Secondary metrics ───────────────────────────────────────────────
+
+## Section header for additional ESG performance indicators
+st.markdown(
+    '<div class="section-header">SECONDARY METRICS</div>',
+    unsafe_allow_html=True
+)
+
+## Create four equal-width columns for secondary metrics
+c6, c7, c8, c9 = st.columns(4)
+
+## Normalize and extract values for each secondary metric
+re_vals    = [v * 100 if v and v < 1 else v for v in series(r_re)]
+spill_vals = series(r_spills)
+water_vals = series(r_water)
+rnd_vals   = series(r_rnd)
+
+
+with c6:
+    ## Bar chart: renewable electricity share (%)
+    fig = bar_chart(
+        YEARS,
+        re_vals,
+        COLORS["green"],
+        "Renewable electricity %",
+        height=200,
+        text=[f"{v:.0f}%" for v in re_vals]
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with c7:
+    ## Bar chart: number of oil spills greater than 1 barrel
+    fig = bar_chart(
+        YEARS,
+        spill_vals,
+        COLORS["amber"],
+        "Oil spills (>1 bbl)",
+        height=200,
+        text=[str(int(v)) for v in spill_vals]
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with c8:
+    ## Bar chart: total water withdrawal (million cubic meters)
+    fig = bar_chart(
+        YEARS,
+        water_vals,
 
     # ── Row 4: Secondary metrics ───────────────────────────────────────────────
-    st.markdown('<div class="section-header">SECONDARY METRICS</div>',
-                unsafe_allow_html=True)
-    c6, c7, c8, c9 = st.columns(4)
+## Section header introducing additional (non-core) ESG indicators
+st.markdown(
+    '<div class="section-header">SECONDARY METRICS</div>',
+    unsafe_allow_html=True
+)
 
-    re_vals = [v * 100 if v and v < 1 else v for v in series(r_re)]
-    spill_vals = series(r_spills)
-    water_vals = series(r_water)
-    rnd_vals   = series(r_rnd)
+## Create a four-column layout for secondary performance metrics
+c6, c7, c8, c9 = st.columns(4)
 
-    with c6:
-        fig = bar_chart(YEARS, re_vals, COLORS["green"],
-                        "Renewable electricity %", height=200,
-                        text=[f"{v:.0f}%" for v in re_vals])
-        st.plotly_chart(fig, use_container_width=True)
+## Normalize and extract values for each secondary metric
+## Convert fractional values (<1) to percentages where applicable
+re_vals    = [v * 100 if v and v < 1 else v for v in series(r_re)]
+spill_vals = series(r_spills)
+water_vals = series(r_water)
+rnd_vals   = series(r_rnd)
 
-    with c7:
-        fig = bar_chart(YEARS, spill_vals, COLORS["amber"],
-                        "Oil spills (>1 bbl)", height=200,
-                        text=[str(int(v)) for v in spill_vals])
-        st.plotly_chart(fig, use_container_width=True)
 
-    with c8:
-        fig = bar_chart(YEARS, water_vals, "#378ADD",
-                        "Total water withdrawal (Mm³)", height=200,
-                        text=[f"{v:.1f}" for v in water_vals])
-        st.plotly_chart(fig, use_container_width=True)
+with c6:
+    ## Bar chart showing share of electricity from renewable sources
+    fig = bar_chart(
+        YEARS,
+        re_vals,
+        COLORS["green"],
+        "Renewable electricity %",
+        height=200,
+        text=[f"{v:.0f}%" for v in re_vals]
+    )
+    ## Render the renewable electricity chart
+    st.plotly_chart(fig, use_container_width=True)
 
-    with c9:
-        fig = bar_chart(YEARS, rnd_vals, COLORS["blue"],
-                        "R&D: low-carbon tech ($M)", height=200,
-                        text=[f"${v:.0f}M" for v in rnd_vals])
-        st.plotly_chart(fig, use_container_width=True)
 
+with c7:
+    ## Bar chart showing number of oil spills greater than 1 barrel
+    fig = bar_chart(
+        YEARS,
+        spill_vals,
+        COLORS["amber"],
+        "Oil spills (>1 bbl)",
+        height=200,
+        text=[str(int(v)) for v in spill_vals]
+    )
+    ## Render the oil spills chart
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with c8:
+    ## Bar chart showing total water withdrawal over time
+    fig = bar_chart(
+        YEARS,
+        water_vals,
+        "#378ADD",
+        "Total water withdrawal (Mm³)",
+        height=200,
+        text=[f"{v:.1f}" for v in water_vals]
+    )
+    ## Render the water withdrawal chart
+    st.plotly_chart(fig, use_container_width=True)
+
+
+with c9:
+    ## Bar chart showing R&D spend on low-carbon technologies
+    fig = bar_chart(
+        YEARS,
+        rnd_vals,
+        COLORS["blue"],
+        "R&D: low-carbon tech ($M)",
+        height=200,
+        text=[f"${v:.0f}M" for v in rnd_vals]
+    )
+    ## Render the R&D expenditure chart
+    st.plotly_chart(fig, use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 #  VERDEMART
