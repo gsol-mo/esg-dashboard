@@ -377,7 +377,7 @@ st.markdown(f"""
 
     </div>
 """, unsafe_allow_html=True)
-``
+
 
     # ── Row 1: Framing + Milestones ────────────────────────────────────────────
 ## Create a two-column layout:
