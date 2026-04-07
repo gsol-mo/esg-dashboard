@@ -4,61 +4,110 @@ Interactive Dashboard: NordPetro AS & VerdeMart Group plc
 Run with: streamlit run esg_dashboard.py
 """
 
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
+import streamlit as st        ## lets you build the web app interface (buttons, text, layout, etc.)
+import pandas as pd           ## used for loading and working with data tables (DataFrames)
+import plotly.graph_objects as go   ## low‑level Plotly tools for fully customized charts
+import plotly.express as px          ## high‑level Plotly tools for quick, easy charts
+from plotly.subplots import make_subplots   ## allows you to place multiple charts in one figure
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="ESG Dashboard — Lab 3",
-    page_icon="🌿",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    page_title="ESG Dashboard — Lab 3",   ## sets the browser tab title shown at the top
+    page_icon="🌿",                      ## sets the small icon (favicon) in the browser tab
+    layout="wide",                       ## makes the app use the full width of the screen
+    initial_sidebar_state="expanded",    ## makes the sidebar open by default when the app loads
 )
 
-# ── Custom CSS ─────────────────────────────────────────────────────────────────
+# ── Custom CSS Cascading Style Sheets It is a language used to style web pages. If Streamlit components are the structure, CSS is the makeup, colors, layout, and design─────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-  .block-container { padding-top: 1.5rem; padding-bottom: 1rem; }
+  .block-container { padding-top: 1.5rem; padding-bottom: 1rem; }  
+  ## adjusts the top/bottom spacing of the main page container
+
   .metric-card {
     background: #ffffff; border: 1px solid #e5e7eb;
     border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
-  }
-  .metric-card.red   { border-left: 4px solid #E24B4A; }
-  .metric-card.amber { border-left: 4px solid #EF9F27; }
-  .metric-card.green { border-left: 4px solid #1D9E75; }
-  .metric-card.blue  { border-left: 4px solid #185FA5; }
-  .metric-label { font-size: 11px; font-weight: 600; color: #9ca3af;
-                  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
-  .metric-value { font-size: 26px; font-weight: 700; color: #111; line-height: 1; }
-  .metric-sub   { font-size: 11px; color: #6b7280; margin-top: 4px; }
+  }  
+  ## styles a custom “metric card” box (white background, border, rounded corners)
+
+  .metric-card.red   { border-left: 4px solid #E24B4A; }  
+  ## adds a red accent bar on the left side
+
+  .metric-card.amber { border-left: 4px solid #EF9F27; }  
+  ## adds an amber/orange accent bar
+
+  .metric-card.green { border-left: 4px solid #1D9E75; }  
+  ## adds a green accent bar
+
+  .metric-card.blue  { border-left: 4px solid #185FA5; }  
+  ## adds a blue accent bar
+
+  .metric-label { 
+    font-size: 11px; font-weight: 600; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px;
+  }  
+  ## styles the small label text inside metric cards
+
+  .metric-value { 
+    font-size: 26px; font-weight: 700; color: #111; line-height: 1;
+  }  
+  ## styles the main number/value in the metric card
+
+  .metric-sub { 
+    font-size: 11px; color: #6b7280; margin-top: 4px;
+  }  
+  ## styles the small subtext under the metric value
+
   .badge {
     display: inline-block; font-size: 11px; padding: 3px 10px;
     border-radius: 20px; font-weight: 600; margin: 2px 2px 0 0;
-  }
-  .badge-red    { background: #FCEBEB; color: #791F1F; }
-  .badge-amber  { background: #FAEEDA; color: #633806; }
-  .badge-green  { background: #EAF3DE; color: #27500A; }
-  .badge-blue   { background: #E6F1FB; color: #0C447C; }
+  }  
+  ## base style for small rounded “badge” labels
+
+  .badge-red    { background: #FCEBEB; color: #791F1F; }  
+  ## red badge color scheme
+
+  .badge-amber  { background: #FAEEDA; color: #633806; }  
+  ## amber badge color scheme
+
+  .badge-green  { background: #EAF3DE; color: #27500A; }  
+  ## green badge color scheme
+
+  .badge-blue   { background: #E6F1FB; color: #0C447C; }  
+  ## blue badge color scheme
+
   .section-header {
     font-size: 13px; font-weight: 700; color: #9ca3af;
     text-transform: uppercase; letter-spacing: .07em;
     border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin: 18px 0 10px;
-  }
+  }  
+  ## styles section titles with a thin bottom border
+
   .flag-box {
     background: #FCEBEB; border-left: 4px solid #E24B4A;
-    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0; font-size: 12px; color: #4b1515;
-  }
+    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0;
+    font-size: 12px; color: #4b1515;
+  }  
+  ## red warning box for alerts or issues
+
   .warn-box {
     background: #FFF8EC; border-left: 4px solid #EF9F27;
-    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0; font-size: 12px; color: #4b3000;
-  }
-  div[data-testid="stMetric"] { background: #f9fafb; border-radius: 8px; padding: 10px 14px; }
-  div[data-testid="stMetric"] label { font-size: 11px !important; }
+    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0;
+    font-size: 12px; color: #4b3000;
+  }  
+  ## amber warning box for softer alerts
+
+  div[data-testid="stMetric"] { 
+    background: #f9fafb; border-radius: 8px; padding: 10px 14px;
+  }  
+  ## custom styling for Streamlit’s built‑in st.metric widget
+
+  div[data-testid="stMetric"] label { 
+    font-size: 11px !important;
+  }  
+  ## makes the metric label text smaller
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)   ## tells Streamlit to allow raw HTML/CSS
 
 YEARS = [2019, 2021, 2022, 2023]
 COLORS = {"blue": "#185FA5", "red": "#E24B4A", "amber": "#EF9F27",
