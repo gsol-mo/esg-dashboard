@@ -256,7 +256,7 @@ with st.sidebar:
     if uploaded:
         data_path = uploaded  ## use the in-memory file object from the uploader widget
     else:
-        data_path = "/mnt/user-data/uploads/Lab3_Minicases_data_exercise_canvas.xlsx"  ## default path
+        data_path = "Lab3_Minicases_data_exercise_canvas.xlsx"  ## default path
 
     ## Radio widget: the selected string is checked later to decide which company section to render
     company = st.radio("Select company", ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"])
