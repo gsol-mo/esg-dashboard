@@ -170,9 +170,11 @@ with st.sidebar:
     st.markdown("---")
 
     ## File uploader widget — accepts Excel files only
+    
     uploaded = st.file_uploader(
         "Upload your Excel dataset",
-        type=["xlsx"]
+        type=["xlsx"],
+        key="excel_uploader"   ## ✅ FIX: explicit unique widget ID
     )
 
     ## Radio button to switch between the two company dashboards
