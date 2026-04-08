@@ -1,6 +1,5 @@
-"""
-ESG Analytics Lab 3 — Module 3
-Interactive Dashboard: NordPetro AS & VerdeMart Group plc
+""" ESG Analytics Lab 3 — Module 3 Interactive Dashboard:
+NordPetro AS & VerdeMart Group plc
 Run with: streamlit run esg_dashboard.py
 """
 
@@ -10,107 +9,20 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
+import io  # ✅ FIX: needed to wrap raw bytes into a file-like object
 
 # ── Page config (must be first Streamlit call) ────────────────────────────
 st.set_page_config(
-    page_title="ESG Dashboard — Lab 3",   ## sets the browser tab title shown at the top
-    page_icon="🌿",                       ## sets the small icon (favicon) in the browser tab
-    layout="wide",                        ## makes the app use the full width of the screen
-    initial_sidebar_state="expanded",     ## makes the sidebar open by default when the app loads
+    page_title="ESG Dashboard — Lab 3",  ## sets the browser tab title shown at the top
+    page_icon="🌿",                     ## sets the small icon (favicon)
+    layout="wide",                      ## makes the app use the full width
+    initial_sidebar_state="expanded",   ## makes the sidebar open by default
 )
 
 # ── Custom CSS Cascading Style Sheets — a language used to style web pages.
 ## If Streamlit components are the structure, CSS is the makeup, colors, layout, and design
 st.markdown("""
-<style>
-  .block-container { padding-top: 1.5rem; padding-bottom: 1rem; }
-  ## adjusts the top/bottom spacing of the main page container
-
-  .metric-card {
-    background: #ffffff; border: 1px solid #e5e7eb;
-    border-radius: 10px; padding: 14px 16px; margin-bottom: 8px;
-  }
-  ## styles a custom "metric card" box (white background, border, rounded corners)
-
-  .metric-card.red   { border-left: 4px solid #E24B4A; }
-  ## adds a red accent bar on the left side
-
-  .metric-card.amber { border-left: 4px solid #EF9F27; }
-  ## adds an amber/orange accent bar
-
-  .metric-card.green { border-left: 4px solid #1D9E75; }
-  ## adds a green accent bar
-
-  .metric-card.blue  { border-left: 4px solid #185FA5; }
-  ## adds a blue accent bar
-
-  .metric-label {
-    font-size: 11px; font-weight: 600; color: #9ca3af;
-    text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px;
-  }
-  ## styles the small label text inside metric cards
-
-  .metric-value {
-    font-size: 26px; font-weight: 700; color: #111; line-height: 1;
-  }
-  ## styles the main number/value in the metric card
-
-  .metric-sub {
-    font-size: 11px; color: #6b7280; margin-top: 4px;
-  }
-  ## styles the small subtext under the metric value
-
-  .badge {
-    display: inline-block; font-size: 11px; padding: 3px 10px;
-    border-radius: 20px; font-weight: 600; margin: 2px 2px 0 0;
-  }
-  ## base style for small rounded "badge" labels
-
-  .badge-red    { background: #FCEBEB; color: #791F1F; }
-  ## red badge color scheme
-
-  .badge-amber  { background: #FAEEDA; color: #633806; }
-  ## amber badge color scheme
-
-  .badge-green  { background: #EAF3DE; color: #27500A; }
-  ## green badge color scheme
-
-  .badge-blue   { background: #E6F1FB; color: #0C447C; }
-  ## blue badge color scheme
-
-  .section-header {
-    font-size: 13px; font-weight: 700; color: #9ca3af;
-    text-transform: uppercase; letter-spacing: .07em;
-    border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin: 18px 0 10px;
-  }
-  ## styles section titles with a thin bottom border
-
-  .flag-box {
-    background: #FCEBEB; border-left: 4px solid #E24B4A;
-    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0;
-    font-size: 12px; color: #4b1515;
-  }
-  ## red warning box for alerts or issues
-
-  .warn-box {
-    background: #FFF8EC; border-left: 4px solid #EF9F27;
-    border-radius: 0 8px 8px 0; padding: 10px 14px; margin: 6px 0;
-    font-size: 12px; color: #4b3000;
-  }
-  ## amber warning box for softer alerts
-
-  div[data-testid="stMetric"] {
-    background: #f9fafb; border-radius: 8px; padding: 10px 14px;
-  }
-  ## custom styling for Streamlit's built-in st.metric widget
-
-  div[data-testid="stMetric"] label {
-    font-size: 11px !important;
-  }
-  ## makes the metric label text smaller
-</style>
-""", unsafe_allow_html=True)   ## tells Streamlit to allow raw HTML/CSS
-
+""", unsafe_allow_html=True)  ## tells Streamlit to allow raw HTML/CSS
 
 ## A list of years that will likely be used for analysis, filtering,
 ## reporting, or looping over specific time periods
@@ -119,12 +31,12 @@ YEARS = [2019, 2021, 2022, 2023]
 ## A dictionary that maps color names to their hexadecimal color codes
 ## These hex values are commonly used in web design and data visualization
 COLORS = {
-    "blue":  "#185FA5",   ## Blue color in hex format
-    "red":   "#E24B4A",   ## Red color in hex format
-    "amber": "#EF9F27",   ## Amber/orange color in hex format
-    "green": "#1D9E75",   ## Green color in hex format
-    "gray":  "#9ca3af",   ## Gray color in hex format
-    "light": "#f3f4f6",   ## Light gray (almost white) color in hex format
+    "blue": "#185FA5",     ## Blue color
+    "red": "#E24B4A",      ## Red color
+    "amber": "#EF9F27",    ## Amber/orange color
+    "green": "#1D9E75",    ## Green color
+    "gray": "#9ca3af",     ## Gray color
+    "light": "#f3f4f6",    ## Light gray (almost white)
 }
 
 ## Shared Plotly layout settings reused across all charts
@@ -139,28 +51,16 @@ PLOT_LAYOUT = dict(
     yaxis=dict(gridcolor="#f3f4f6"),
 )
 
-
 # ── Helper functions ───────────────────────────────────────────────────────────
-
 ## Generates an HTML badge span with a given label and color class
 def badge(text, color="blue"):
-    return f"<span class='badge badge-{color}'>{text}</span>"
-
+    return f"{text}"
 
 ## Generates an HTML progress bar with left/right labels and a colored fill
 def progress_bar_html(pct, color, label_left, label_right):
     return f"""
-    <div style='margin:8px 0;'>
-      <div style='display:flex;justify-content:space-between;font-size:10px;
-                  color:#6b7280;margin-bottom:3px;'>
-        <span>{label_left}</span><span>{label_right}</span>
-      </div>
-      <div style='background:#f3f4f6;border-radius:6px;height:10px;'>
-        <div style='background:{color};width:{pct}%;height:10px;
-                    border-radius:6px;'></div>
-      </div>
-    </div>"""
-
+    {label_left}{label_right}
+    """
 
 ## Creates a styled Plotly line chart with shared layout applied
 def line_chart(traces, title="", height=260):
@@ -172,15 +72,15 @@ def line_chart(traces, title="", height=260):
     )
     return fig
 
-
 ## Creates a styled Plotly bar chart with shared layout applied
 def bar_chart(x, y, color, title="", height=220, text=None):
     fig = go.Figure(go.Bar(
-        x=x, y=y,
+        x=x,
+        y=y,
         marker_color=color,
         text=text,
         textposition="outside",
-        hovertemplate="%{x}: %{y}<extra></extra>",
+        hovertemplate="%{x}: %{y}",
     ))
     fig.update_layout(
         **PLOT_LAYOUT,
@@ -189,6 +89,127 @@ def bar_chart(x, y, color, title="", height=220, text=None):
     )
     return fig
 
+# ── Data loader ───────────────────────────────────────────────────────────────
+## Cache the result of this function so the data is only loaded once
+## This improves performance in Streamlit apps
+@st.cache_data
+def load_data(file_bytes: bytes):
+    ## FIX: wrap raw bytes in a file-like buffer before passing to pandas
+    buffer = io.BytesIO(file_bytes)   # ✅ FIX
+
+    ## Open the Excel file from the provided bytes
+    xl = pd.ExcelFile(buffer)          # ✅ FIX
+
+    ## Helper function to parse and clean each worksheet
+    def parse(sheet):
+        ## Read the sheet without headers so we can manually define them
+        raw = pd.read_excel(xl, sheet_name=sheet, header=None)
+
+        ## The actual header row is row 7 (0-based index),
+        ## so we set the column names from that row
+        raw.columns = raw.iloc[7]
+
+        ## Remove all rows above the header and reset the index
+        raw = raw.iloc[8:].reset_index(drop=True)
+
+        ## Rename columns to standardized, meaningful names
+        raw.columns = ["Metric", "2019", "2021", "2022", "2023", "Unit", "Notes"]
+
+        ## Drop any rows where the Metric column is missing
+        raw = raw.dropna(subset=["Metric"])
+
+        ## Ensure Metric values are strings and remove extra whitespace
+        raw["Metric"] = raw["Metric"].astype(str).str.strip()
+
+        ## Return the cleaned DataFrame for this sheet
+        return raw
+
+    ## Parse the first two sheets and return them as a dictionary
+    ## Keys represent dataset or company names
+    return {
+        "nordpetro": parse(xl.sheet_names[0]),
+        "verdemart": parse(xl.sheet_names[1]),
+    }
+
+## Retrieve the first row where the Metric column contains the given keyword
+def get_row(df, keyword):
+    ## Create a boolean mask for case-insensitive partial matching
+    mask = df["Metric"].str.contains(keyword, case=False, na=False)
+
+    ## If at least one match is found, return the first matching row
+    if mask.any():
+        return df[mask].iloc[0]
+
+    ## Return None if no matching row exists
+    return None
+
+## Safely extract a numeric value for a given year from a row
+def num(row, year):
+    try:
+        ## Access the value for the specified year
+        val = row[str(year)]
+
+        ## Convert to float if the value exists, otherwise return None
+        return float(val) if pd.notna(val) else None
+    except Exception:
+        ## Return None if any error occurs
+        return None
+
+## Generate a list of numeric values across multiple years for a metric
+def series(row, years=None):
+    ## Default to the predefined YEARS list if none is provided
+    if years is None:
+        years = YEARS
+
+    ## Return a list of numeric values for each year
+    return [num(row, y) for y in years]
+
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("## 🌿 ESG Lab 3 — Module 3")
+    st.markdown("---")
+
+    ## File uploader widget — accepts Excel files only
+    uploaded = st.file_uploader(
+        "Upload your Excel dataset",
+        type=["xlsx"]
+    )
+
+    ## Radio button to switch between the two company dashboards
+    company = st.radio(
+        "Select company",
+        ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"]
+    )
+
+    st.markdown("---")
+    st.markdown("**Critique rubric**")
+    st.markdown("""
+    - **Audience fit** — 25 pts
+    - **Metric relevance** — 25 pts
+    - **Visual clarity** — 25 pts
+    - **Data integrity** — 25 pts
+    """)
+
+    st.markdown("---")
+    st.caption("Data: Lab3_Minicases_data_exercise_canvas.xlsx")
+
+# ── Load dataset ──────────────────────────────────────────────────────────────
+if uploaded is not None:
+    ## If the user has uploaded a file, read it as bytes and pass to loader
+    st.info("Using uploaded file")
+    data = load_data(uploaded.getvalue())   ## .getvalue() returns raw bytes
+else:
+    ## Otherwise fall back to the default file on disk
+    st.info("Using default dataset — upload your Excel file in the sidebar.")
+    try:
+        with open("Lab3_Minicases_data_exercise_canvas.xlsx", "rb") as f:
+            data = load_data(f.read())       ## read() returns raw bytes
+    except FileNotFoundError:
+        ## Display a user-friendly error and stop execution if file is missing
+        st.warning("Default file not found. Please upload your Excel dataset.")
+        st.stop()
+
+# ══════════════════════════════════════════════════════════════════════════════
 
 # ── Data loader ───────────────────────────────────────────────────────────────
 ## Cache the result of this function so the data is only loaded once
