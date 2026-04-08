@@ -178,9 +178,11 @@ with st.sidebar:
     )
 
     ## Radio button to switch between the two company dashboards
+    
     company = st.radio(
         "Select company",
-        ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"]
+        ["🛢 NordPetro AS", "🛒 VerdeMart Group plc"],
+        key="company_selector"   # ✅ REQUIRED FIX
     )
 
     st.markdown("---")
